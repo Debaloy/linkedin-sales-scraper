@@ -7,7 +7,7 @@ scrapeBtn.addEventListener('click', async () => {
     })
 
     // Execute the script to scrape the data
-    chrome.scripting.executeScript({
+    await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: scrapeData
     })
@@ -15,43 +15,186 @@ scrapeBtn.addEventListener('click', async () => {
 
 // Function to scrape data
 async function scrapeData() {
-    const secondsToWaitForTheNextPageToLoad = 5
-    let list = []
+    let leadList = '', accountList = ''
 
-    const scrollAndScrape = async () => {
-        let newList = document.getElementsByClassName('artdeco-list__item')
-        for (let i = 0; i < newList.length; i += 2) {
-            await new Promise(resolve => {
-                setTimeout(() => {
-                    document.getElementsByClassName('artdeco-list__item')[i].scrollIntoView()
-                    resolve();
-                }, 4000)
-            });
+    function smoothScrollTo(element, duration, reverse=false) {
+        return new Promise(resolve => {
+            const startingPosition = element.scrollTop
+            const distanceToScroll = element.scrollHeight - element.clientHeight
+            let startTime = performance.now()
+
+            function scrollAnimation(currentTime) {
+                const elapsedTime = currentTime - startTime
+                const scrollProgress = Math.min(elapsedTime / duration, 1)
+                const scrollValue = startingPosition + distanceToScroll * easeInOutQuad(scrollProgress)
+
+                element.scrollTop = reverse ? -1 * scrollValue : scrollValue
+
+                if (elapsedTime < duration) {
+                    requestAnimationFrame(scrollAnimation)
+                } else {
+                    resolve(); // Resolve the promise when scrolling is completed
+                }
+            }
+
+            function easeInOutQuad(t) {
+                return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+            }
+
+            requestAnimationFrame(scrollAnimation)
+        });
+    }
+
+    let page = 1
+    let N = 2
+    while (!document.getElementsByClassName('artdeco-pagination__button--next')[0].disabled) {
+    // while (page <= N) { // uncomment this when testing specific pages
+
+        // Get the element with ID "search-results-container"
+        const searchResultsContainer = document.getElementById('search-results-container')
+
+        // Scroll the "search-results-container" div with smooth scrolling lasting 15 seconds (15000 milliseconds)
+        await smoothScrollTo(searchResultsContainer, 15000)
+
+        await smoothScrollTo(searchResultsContainer, 5000, true)
+
+        // Rest of the code that works after the scrolling is done
+        let newLeadList = document.querySelectorAll("#search-results-container > div > ol > li > div > div > div.flex.justify-space-between.full-width > div.flex.flex-column")
+
+        for (let i = 0; i < newLeadList.length; i++) {
+            const ll = newLeadList[i]
+            
+            const upperDiv = ll?.childNodes[1]?.childNodes[3]
+            const lowerDiv = ll?.childNodes[3]
+
+            let profileLink = upperDiv?.childNodes[1]?.childNodes[2]?.href
+            
+            let name = upperDiv?.childNodes[3]?.childNodes[1]?.childNodes[1]?.innerText
+            
+            let designation = upperDiv?.childNodes[3]?.childNodes[4]?.innerText
+            
+            let address = upperDiv?.childNodes[3]?.childNodes[6]?.innerText
+            
+            let experience = upperDiv?.childNodes[3]?.childNodes[8]?.innerText
+
+            let about = "N/A"
+            if (lowerDiv?.childNodes[3]?.childNodes[1]?.innerText !== '') {
+                about = lowerDiv?.childNodes[1]?.childNodes[3]?.childNodes[3]?.innerText
+            }
+
+            leadList += `${profileLink},${name},${designation},${address},${experience},${about}\n`
         }
+
+        document.getElementsByClassName('artdeco-pagination__button--next')[0].click()
 
         await new Promise(resolve => {
-            setTimeout(() => {
-                newList = [...document.getElementsByClassName('artdeco-list__item')]
-                list.push(newList.map(item => item.innerText))
+            setTimeout(resolve, 5000)
+        })
 
-                // this data needs to be saved in file
-                console.log(list.length)
-                console.log(list)
+        page++
+    }
 
-                document.getElementsByClassName('artdeco-pagination__button--next')[0].click()
-                resolve();
-            }, 5000)
-        });
-    };
 
-    const intervalId = setInterval(async () => {
-        if (document.getElementsByClassName('artdeco-pagination__button--next')[0] !== undefined) {
-            await scrollAndScrape();
-        } else {
-            clearInterval(intervalId);
-            console.log('Scraping completed.');
-            console.log('Total items scraped: ', list.length);
-            console.log('Scraped data: ', list);
+    // ACCOUNTS
+
+    document.getElementsByClassName('flex align-items-center border-bottom _panel-tabs_c69tab')[0].childNodes[5].click()
+
+    window.scrollTo(0, 0)
+
+    await new Promise(resolve => {
+        setTimeout(resolve, 5000)
+    })
+
+    page = 1
+    N = 2
+    while (!document.getElementsByClassName('artdeco-pagination__button--next')[0].disabled) {
+    // while (page <= N) {
+
+        // Get the element with ID "search-results-container"
+        const searchResultsContainer = document.getElementById('search-results-container')
+
+        // Scroll the "search-results-container" div with smooth scrolling lasting 15 seconds (15000 milliseconds)
+        await smoothScrollTo(searchResultsContainer, 15000)
+
+        await smoothScrollTo(searchResultsContainer, 5000, true)
+
+        // Rest of the code that works after the scrolling is done
+        let newAccountList = document.querySelectorAll("#search-results-container > div > ol > li > div > div > div.flex.justify-space-between.full-width > div.flex.flex-column")
+
+        for (let i = 0; i < newAccountList.length; i++) {
+            const al = newAccountList[i]
+            
+            const upperDiv = al?.childNodes[1]?.childNodes[4]
+            const lowerDiv = al?.childNodes[3]
+
+            let profileLink = upperDiv?.childNodes[3]?.childNodes[1]?.childNodes[1]?.childNodes[1]?.href
+            
+            let name = upperDiv?.childNodes[3]?.childNodes[1]?.childNodes[1]?.innerText
+            
+            let service = upperDiv?.childNodes[3]?.childNodes[1]?.innerText
+            
+            let employees = upperDiv?.childNodes[3]?.childNodes[3]?.childNodes[6]?.innerText
+
+            let about = "N/A"
+            if (lowerDiv?.childNodes[3]?.childNodes[1]?.innerText !== '') {
+                about = lowerDiv?.childNodes[1]?.childNodes[4]?.childNodes[3]?.innerText
+            }
+
+            accountList += `${profileLink},${name},${service},${employees},${about}\n`
         }
-    }, secondsToWaitForTheNextPageToLoad * 1000);
+
+        document.getElementsByClassName('artdeco-pagination__button--next')[0].click()
+
+        await new Promise(resolve => {
+            setTimeout(resolve, 5000)
+        })
+
+        page++
+    }
+
+    /*
+     * CSV files have comma separated values per tuple
+     * The address field in leadList contains ","
+     * I don't know how to deal with that
+     * 
+     * To create a CSV in JS the following block of code is used:
+     *  const csvContent = leadList
+     *      .split('\n') // Split lines
+     *      .map(line => line.split(',').map(field => `"${field}"`).join(','))
+     *      .join('\n'); // Join lines with newline characters
+     * 
+     *   // Create a Blob with the CSV content
+     *   const blob = new Blob([csvContent], { type: 'text/csv' });
+     * 
+     * 
+     * Please update the below two blocks of code to handle csv
+     * */
+
+
+    // Save LeadList as a downloadable text file
+    const blob = new Blob([leadList], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'LeadList.txt';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+
+    // Clean up
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+
+    // Save AccountList as a downloadable text file
+    const blob2 = new Blob([accountList], { type: 'text/plain' });
+    const url2 = URL.createObjectURL(blob2);
+
+    const a2 = document.createElement('a');
+    a2.href = url2;
+    a2.download = 'AccountList.txt';
+    a2.style.display = 'none';
+    document.body.appendChild(a2);
+    a2.click();
 }
