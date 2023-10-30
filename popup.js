@@ -51,13 +51,21 @@ async function scrapeData() {
     while (!document.getElementsByClassName('artdeco-pagination__button--next')[0].disabled) {
     // while (page <= N) { // uncomment this when testing specific pages
 
+        let tooManyReq = document.querySelector("#content-main > div.flex > div.full-width > div.m4.background-color-white.container-with-shadow._search-empty-states-height_1igybl > h3")
+
+        if (tooManyReq != null && tooManyReq.innerText === 'Too Many Requests') {
+            console.log("Too many requests, start scraping from this URI")
+            console.log(tooManyReq.baseURI)
+            break
+        }
+
         // Get the element with ID "search-results-container"
         const searchResultsContainer = document.getElementById('search-results-container')
 
         // Scroll the "search-results-container" div with smooth scrolling lasting 15 seconds (15000 milliseconds)
-        await smoothScrollTo(searchResultsContainer, 15000)
+        await smoothScrollTo(searchResultsContainer, 10000)
 
-        await smoothScrollTo(searchResultsContainer, 5000, true)
+        await smoothScrollTo(searchResultsContainer, 3000, true)
 
         // Rest of the code that works after the scrolling is done
         let newLeadList = document.querySelectorAll("#search-results-container > div > ol > li > div > div > div.flex.justify-space-between.full-width > div.flex.flex-column")
@@ -111,13 +119,21 @@ async function scrapeData() {
     while (!document.getElementsByClassName('artdeco-pagination__button--next')[0].disabled) {
     // while (page <= N) {
 
+        let tooManyReq = document.querySelector("#content-main > div.flex > div.full-width > div.m4.background-color-white.container-with-shadow._search-empty-states-height_1igybl > h3")
+
+        if (tooManyReq != null && tooManyReq.innerText === 'Too Many Requests') {
+            console.log("Too many requests, start scraping from this URI")
+            console.log(tooManyReq.baseURI)
+            break
+        }
+
         // Get the element with ID "search-results-container"
         const searchResultsContainer = document.getElementById('search-results-container')
 
         // Scroll the "search-results-container" div with smooth scrolling lasting 15 seconds (15000 milliseconds)
-        await smoothScrollTo(searchResultsContainer, 15000)
+        await smoothScrollTo(searchResultsContainer, 10000)
 
-        await smoothScrollTo(searchResultsContainer, 5000, true)
+        await smoothScrollTo(searchResultsContainer, 3000, true)
 
         // Rest of the code that works after the scrolling is done
         let newAccountList = document.querySelectorAll("#search-results-container > div > ol > li > div > div > div.flex.justify-space-between.full-width > div.flex.flex-column")
