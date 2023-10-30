@@ -1,0 +1,27 @@
+body {
+    min-width: 300px;
+    padding: 20px 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#scrape-btn {
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 1rem;
+    border: 1px solid black;
+
+    background-color: black;
+    color: white;
+
+    transition: .2s ease-in;
+}
+
+#scrape-btn:hover {
+    background-color: white;
+    color: black;
+}

@@ -1,0 +1,15 @@
+{
+    "name": "Page Scraper",
+    "description": "Scrapes data from LinkedIn Sales Pages",
+    "version": "1.0",
+    "manifest_version": 3,
+
+    "action": {
+        "default_popup": "popup.html"
+    },
+
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ]
+}
