@@ -1,3 +1,7 @@
+const scrollDownTimer = 10
+const scrollUpTimer = 5
+const waitTimer = 10
+
 const scrapeBtn = document.getElementById('scrape-btn')
 
 scrapeBtn.addEventListener('click', async () => {
@@ -87,9 +91,9 @@ async function scrapeData() {
         const searchResultsContainer = document.getElementById('search-results-container')
 
         // Scroll the "search-results-container" div with smooth scrolling lasting 15 seconds (15000 milliseconds)
-        await smoothScrollTo(searchResultsContainer, 10000)
+        await smoothScrollTo(searchResultsContainer, scrollDownTimer * 1000)
 
-        await smoothScrollTo(searchResultsContainer, 3000, true)
+        await smoothScrollTo(searchResultsContainer, scrollUpTimer * 1000, true)
 
         // Rest of the code that works after the scrolling is done
         let newLeadList = document.querySelectorAll("#search-results-container > div > ol > li > div > div > div.flex.justify-space-between.full-width > div.flex.flex-column")
@@ -121,7 +125,7 @@ async function scrapeData() {
         document.getElementsByClassName('artdeco-pagination__button--next')[0].click()
 
         await new Promise(resolve => {
-            setTimeout(resolve, 5000)
+            setTimeout(resolve, waitTimer * 1000)
         })
 
         page++
@@ -154,7 +158,7 @@ async function scrapeData() {
 
     // ACCOUNTS
     await new Promise(resolve => {
-        setTimeout(resolve, 10000)
+        setTimeout(resolve, waitTimer * 1000)
     })
 
     page = 1
@@ -191,9 +195,9 @@ async function scrapeData() {
         const searchResultsContainer = document.getElementById('search-results-container')
 
         // Scroll the "search-results-container" div with smooth scrolling lasting 15 seconds (15000 milliseconds)
-        await smoothScrollTo(searchResultsContainer, 10000)
+        await smoothScrollTo(searchResultsContainer, scrollDownTimer * 1000)
 
-        await smoothScrollTo(searchResultsContainer, 3000, true)
+        await smoothScrollTo(searchResultsContainer, scrollUpTimer * 1000, true)
 
         // Rest of the code that works after the scrolling is done
         let newAccountList = document.querySelectorAll("#search-results-container > div > ol > li > div > div > div.flex.justify-space-between.full-width > div.flex.flex-column")
@@ -223,7 +227,7 @@ async function scrapeData() {
         document.getElementsByClassName('artdeco-pagination__button--next')[0].click()
 
         await new Promise(resolve => {
-            setTimeout(resolve, 5000)
+            setTimeout(resolve, waitTimer * 1000)
         })
 
         page++
