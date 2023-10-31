@@ -12,5 +12,13 @@
         "activeTab",
         "scripting",
         "storage"
-    ]
+    ],
+
+    "host_permissions": [
+        "https://www.linkedin.com/"
+    ],
+
+    "background": {
+        "service_worker": "background.js"
+    }
 }

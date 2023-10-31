@@ -1,25 +1,35 @@
-const scrapeBtn = document.getElementById('scrape-btn')
-
-scrapeBtn.addEventListener('click', async () => {
-    // Get current active tab
-    let [tab] = await chrome.tabs.query({
-        active: true, currentWindow: true
-    })
-
-    // Execute the script to scrape the data
-    await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: scrapeData
-    })
-})
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if (changeInfo.status === 'complete' && tab.active) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+            const activeTab = tabs[0];
+            if (tabId === activeTab.id) {
+                chrome.scripting.executeScript({
+                    target: { tabId: tabId },
+                    function: () => {console.log(123)}
+                });
+            }
+        });
+    }
+});
 
 // Function to scrape data
 async function scrapeData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageNumber = urlParams.get('page');
+    
+    if (pageNumber && parseInt(pageNumber) > 1) {
+        console.log('Page number is greater than 1')
+    } else {
+        console.log('Page number is less than 1')
+        return
+    }
+
+    await new Promise(resolve => {
+        setTimeout(resolve, 5000)
+    })
+
     let leadList = '', 
         accountList = ''
-
-    let tooManyLeadListReq = false,
-        tooManyAccountListReq = false
 
     function smoothScrollTo(element, duration, reverse=false) {
         return new Promise(resolve => {
@@ -56,7 +66,7 @@ async function scrapeData() {
 
         let tooManyReq = document.querySelector("#content-main > div.flex > div.full-width > div.m4.background-color-white.container-with-shadow._search-empty-states-height_1igybl > h3")
 
-        if (tooManyReq != null && ['Too Many Requests', 'Request Timed Out'].includes(tooManyReq.innerText)) {
+        if (tooManyReq != null && tooManyReq.innerText === 'Too Many Requests') {
             console.log("Too many requests, scraping will restart after 10min")
             const csvContentLeadList = leadList.split('\n') // Split lines
                 .map(line => line.split('|/|').map(field => `"${field}"`).join(','))
@@ -77,10 +87,12 @@ async function scrapeData() {
             URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
-            tooManyLeadListReq = true
-
-            console.log("Restart from this URL:")
-            console.log(tooManyReq.baseURI)
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    window.location.replace(tooManyReq.baseURI)
+                    resolve
+                }, 5000)
+            })
         }
 
         // Get the element with ID "search-results-container"
@@ -127,34 +139,15 @@ async function scrapeData() {
         page++
     }
 
+
+    // ACCOUNTS
+
     document.getElementsByClassName('flex align-items-center border-bottom _panel-tabs_c69tab')[0].childNodes[5].click()
 
     window.scrollTo(0, 0)
 
-    if (!tooManyLeadListReq) {
-        const csvContentLeadList = leadList.split('\n') // Split lines
-            .map(line => line.split('|/|').map(field => `"${field}"`).join(','))
-            .join('\n'); // Join lines with newline characters
-
-        // Save LeadList as a downloadable text file
-        const blob = new Blob([csvContentLeadList], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'LeadList.csv';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-
-        // Clean up
-        URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    }
-
-    // ACCOUNTS
     await new Promise(resolve => {
-        setTimeout(resolve, 10000)
+        setTimeout(resolve, 5000)
     })
 
     page = 1
@@ -164,8 +157,8 @@ async function scrapeData() {
 
         let tooManyReq = document.querySelector("#content-main > div.flex > div.full-width > div.m4.background-color-white.container-with-shadow._search-empty-states-height_1igybl > h3")
 
-        if (tooManyReq != null && ['Too Many Requests', 'Request Timed Out'].includes(tooManyReq.innerText)) {
-            console.log("Too many requests")
+        if (tooManyReq != null && tooManyReq.innerText === 'Too Many Requests') {
+            console.log("Too many requests, scraping will restart after 10min")
             // Save AccountList as a downloadable text file
             const csvContentAccountList = accountList.split('\n') // Split lines
                 .map(line => line.split('|/|').map(field => `"${field}"`).join(','))
@@ -181,10 +174,12 @@ async function scrapeData() {
             document.body.appendChild(a2);
             a2.click();
 
-            tooManyAccountListReq = true
-
-            console.log("Restart from this URL:")
-            console.log(tooManyReq.baseURI)
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    window.location.replace(tooManyReq.baseURI)
+                    resolve
+                }, 5000)
+            })
         }
 
         // Get the element with ID "search-results-container"
@@ -229,20 +224,58 @@ async function scrapeData() {
         page++
     }
 
-    if (!tooManyAccountListReq) {
-        // Save AccountList as a downloadable text file
-        const csvContentAccountList = accountList.split('\n') // Split lines
-            .map(line => line.split('|/|').map(field => `"${field}"`).join(','))
-            .join('\n'); // Join lines with newline characters
+    /*
+     *          FIXED ( IGNORE )
+     * CSV files have comma separated values per tuple
+     * The address field in leadList contains ","
+     * I don't know how to deal with that
+     * 
+     * To create a CSV in JS the following block of code is used:
+     *  const csvContent = leadList
+     *      .split('\n') // Split lines
+     *      .map(line => line.split(',').map(field => `"${field}"`).join(','))
+     *      .join('\n'); // Join lines with newline characters
+     * 
+     *   // Create a Blob with the CSV content
+     *   const blob = new Blob([csvContent], { type: 'text/csv' });
+     * 
+     * 
+     * Please update the below two blocks of code to handle csv
+     * */
 
-        const blob2 = new Blob([csvContentAccountList], { type: 'text/csv' });
-        const url2 = URL.createObjectURL(blob2);
 
-        const a2 = document.createElement('a');
-        a2.href = url2;
-        a2.download = 'AccountList.csv';
-        a2.style.display = 'none';
-        document.body.appendChild(a2);
-        a2.click();
-    }
+    const csvContentLeadList = leadList.split('\n') // Split lines
+        .map(line => line.split('|/|').map(field => `"${field}"`).join(','))
+        .join('\n'); // Join lines with newline characters
+
+    // Save LeadList as a downloadable text file
+    const blob = new Blob([csvContentLeadList], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'LeadList.csv';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+
+    // Clean up
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+
+    // Save AccountList as a downloadable text file
+    const csvContentAccountList = accountList.split('\n') // Split lines
+        .map(line => line.split('|/|').map(field => `"${field}"`).join(','))
+        .join('\n'); // Join lines with newline characters
+
+    const blob2 = new Blob([csvContentAccountList], { type: 'text/csv' });
+    const url2 = URL.createObjectURL(blob2);
+
+    const a2 = document.createElement('a');
+    a2.href = url2;
+    a2.download = 'AccountList.csv';
+    a2.style.display = 'none';
+    document.body.appendChild(a2);
+    a2.click();
 }
