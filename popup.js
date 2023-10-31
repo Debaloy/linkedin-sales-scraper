@@ -1,7 +1,3 @@
-const scrollDownTimer = 10
-const scrollUpTimer = 5
-const waitTimer = 10
-
 const scrapeBtn = document.getElementById('scrape-btn')
 
 scrapeBtn.addEventListener('click', async () => {
@@ -19,6 +15,10 @@ scrapeBtn.addEventListener('click', async () => {
 
 // Function to scrape data
 async function scrapeData() {
+    const scrollDownTimer = 10
+    const scrollUpTimer = 5
+    const waitTimer = 10
+    
     let leadList = '', 
         accountList = ''
 
